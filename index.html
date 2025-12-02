@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Young's Double Slit Sim</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0f;
+            --panel-color: #13131f;
+            --text-color: #e0e0e0;
+            --laser-color: #00ff00; /* Dynamic */
+            --accent: #2a2a35;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            margin-top: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-weight: 300;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px var(--laser-color);
+        }
+        p.subtitle {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        /* Main Layout */
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            padding: 20px;
+            max-width: 1200px;
+            width: 100%;
+            justify-content: center;
+        }
+
+        /* Canvas Area */
+        .display-area {
+            flex: 2;
+            min-width: 300px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .canvas-container {
+            background: var(--panel-color);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            border: 1px solid var(--accent);
+            position: relative;
+        }
+
+        canvas {
+            width: 100%;
+            height: 250px;
+            border-radius: 8px;
+            background: #000;
+            display: block;
+        }
+
+        .label {
+            position: absolute;
+            top: 10px;
+            left: 20px;
+            font-size: 0.8rem;
+            color: #666;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        /* Controls Area */
+        .controls {
+            flex: 1;
+            min-width: 280px;
+            background: var(--panel-color);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid var(--accent);
+            height: fit-content;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .value-display {
+            font-family: 'Courier New', monospace;
+            color: var(--laser-color);
+            font-weight: bold;
+        }
+
+        /* Sliders */
+        input[type=range] {
+            -webkit-appearance: none; /* Old WebKit */
+            appearance: none;         /* Standard property (Fixes VS Code warning) */
+            width: 100%;
+            background: transparent;
+        }
+
+        /* Chrome/Safari/Edge Thumb */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--laser-color);
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px var(--laser-color);
+        }
+
+        /* Chrome/Safari/Edge Track */
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #333;
+            border-radius: 2px;
+        }
+
+        /* Firefox Thumb */
+        input[type=range]::-moz-range-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--laser-color);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 0 10px var(--laser-color);
+        }
+
+        /* Firefox Track */
+        input[type=range]::-moz-range-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #333;
+            border-radius: 2px;
+        }
+        
+        /* Info Box */
+        .info-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            border-left: 3px solid var(--laser-color);
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Interference Lab</h1>
+        <p class="subtitle">Young's Double Slit Experiment Simulator</p>
+    </header>
+
+    <div class="container">
+        
+        <!-- CONTROLS -->
+        <div class="controls">
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Laser Color (Wavelength)</span>
+                    <span id="val-lambda" class="value-display">532 nm</span>
+                </div>
+                <input type="range" id="slider-lambda" min="380" max="750" value="532" step="1">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Slit Separation (d)</span>
+                    <span id="val-d" class="value-display">0.25 mm</span>
+                </div>
+                <input type="range" id="slider-d" min="0.05" max="1.0" value="0.25" step="0.01">
+            </div>
+
+            <div class="control-group">
+                <div class="control-header">
+                    <span>Slit Width (a)</span>
+                    <span id="val-a" class="value-display">0.05 mm</span>
+                </div>
+                <input type="range" id="slider-a" min="0.01" max="0.2" value="0.05" step="0.005">
+            </div>
+
+            <div class="info-box">
+                <strong>How it works:</strong><br>
+                • <b>Wavelength:</b> Changes the laser color and spacing.<br>
+                • <b>Separation:</b> Moving slits apart makes fringes closer.<br>
+                • <b>Width:</b> Narrower slits spread the light wider.
+            </div>
+        </div>
+
+        <!-- VISUALIZATION -->
+        <div class="display-area">
+            
+            <!-- Simulated Screen View -->
+            <div class="canvas-container">
+                <span class="label">Wall View (What you see)</span>
+                <canvas id="viewCanvas"></canvas>
+            </div>
+
+            <!-- Intensity Graph -->
+            <div class="canvas-container">
+                <span class="label">Intensity Graph (The Math)</span>
+                <canvas id="graphCanvas"></canvas>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const canvasView = document.getElementById('viewCanvas');
+        const ctxView = canvasView.getContext('2d');
+        
+        const canvasGraph = document.getElementById('graphCanvas');
+        const ctxGraph = canvasGraph.getContext('2d');
+
+        // Inputs
+        const sliderLambda = document.getElementById('slider-lambda');
+        const sliderD = document.getElementById('slider-d');
+        const sliderA = document.getElementById('slider-a');
+
+        // Labels
+        const labelLambda = document.getElementById('val-lambda');
+        const labelD = document.getElementById('val-d');
+        const labelA = document.getElementById('val-a');
+
+        // State
+        let lambda = 532; // nm
+        let d = 0.25;     // mm
+        let a = 0.05;     // mm
+        let L = 1.0;      // m (Fixed screen distance)
+
+        // Resize handler to keep canvases sharp
+        function resizeCanvas(canvas) {
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth;
+            canvas.height = parent.clientHeight;
+        }
+
+        window.addEventListener('resize', () => {
+            resizeCanvas(canvasView);
+            resizeCanvas(canvasGraph);
+            update();
+        });
+
+        // Initial Resize
+        resizeCanvas(canvasView);
+        resizeCanvas(canvasGraph);
+
+        // --- PHYSICS ENGINE ---
+        function getIntensity(x_mm) {
+            // Convert inputs to SI units (meters)
+            const lam_m = lambda * 1e-9;
+            const d_m = d * 1e-3;
+            const a_m = a * 1e-3;
+            const x_m = x_mm * 1e-3;
+
+            // Small angle approximation: sin(theta) approx x / L
+            const sinTheta = x_m / L;
+
+            // 1. Interference (Double Slit term)
+            const beta = (Math.PI * d_m * sinTheta) / lam_m;
+            const interference = Math.cos(beta) ** 2;
+
+            // 2. Diffraction (Single Slit envelope)
+            const alpha = (Math.PI * a_m * sinTheta) / lam_m;
+            // Handle sinc(0) = 1
+            let diffraction = 1;
+            if (Math.abs(alpha) > 1e-9) {
+                diffraction = (Math.sin(alpha) / alpha) ** 2;
+            }
+
+            return interference * diffraction;
+        }
+
+        // --- UTILS: Wavelength to RGB ---
+        function getLaserColor(wavelength) {
+            let R, G, B;
+            if (wavelength >= 380 && wavelength < 440) {
+                R = -(wavelength - 440) / (440 - 380);
+                G = 0;
+                B = 1;
+            } else if (wavelength >= 440 && wavelength < 490) {
+                R = 0;
+                G = (wavelength - 440) / (490 - 440);
+                B = 1;
+            } else if (wavelength >= 490 && wavelength < 510) {
+                R = 0;
+                G = 1;
+                B = -(wavelength - 510) / (510 - 490);
+            } else if (wavelength >= 510 && wavelength < 580) {
+                R = (wavelength - 510) / (580 - 510);
+                G = 1;
+                B = 0;
+            } else if (wavelength >= 580 && wavelength < 645) {
+                R = 1;
+                G = -(wavelength - 645) / (645 - 580);
+                B = 0;
+            } else if (wavelength >= 645 && wavelength <= 750) {
+                R = 1;
+                G = 0;
+                B = 0;
+            } else {
+                R = 0; G = 0; B = 0;
+            }
+
+            // Intensity correction near vision limits
+            let factor;
+            if (wavelength >= 380 && wavelength < 420) factor = 0.3 + 0.7*(wavelength - 380) / (420 - 380);
+            else if (wavelength >= 420 && wavelength < 645) factor = 1;
+            else if (wavelength >= 645 && wavelength <= 750) factor = 0.3 + 0.7*(750 - wavelength) / (750 - 645);
+            else factor = 0;
+
+            const rVal = Math.round(R * factor * 255);
+            const gVal = Math.round(G * factor * 255);
+            const bVal = Math.round(B * factor * 255);
+            
+            return `rgb(${rVal}, ${gVal}, ${bVal})`;
+        }
+
+        // --- RENDER LOOP ---
+        function draw() {
+            const width = canvasView.width;
+            const height = canvasView.height;
+            
+            // Clear
+            ctxView.clearRect(0, 0, width, height);
+            ctxGraph.clearRect(0, 0, width, height);
+
+            const color = getLaserColor(lambda);
+            
+            // Update CSS Glow
+            document.documentElement.style.setProperty('--laser-color', color);
+
+            // Define physical screen width (e.g., plotting from -20mm to +20mm)
+            const screenWidthMM = 40; 
+            const mmPerPixel = screenWidthMM / width;
+
+            // GRAPH SETUP
+            ctxGraph.beginPath();
+            ctxGraph.strokeStyle = color;
+            ctxGraph.lineWidth = 2;
+            
+            // 1. Loop through every pixel column
+            for (let px = 0; px < width; px++) {
+                // Calculate physical position x (mm) relative to center
+                const x_mm = (px - width / 2) * mmPerPixel;
+                
+                // Get Physics Intensity (0 to 1)
+                const I = getIntensity(x_mm);
+
+                // -- DRAW SCREEN VIEW (Top Canvas) --
+                // We draw a vertical line with opacity = Intensity
+                ctxView.fillStyle = color;
+                ctxView.globalAlpha = I; 
+                ctxView.fillRect(px, 0, 1, height);
+
+                // -- DRAW GRAPH (Bottom Canvas) --
+                // Map intensity (0-1) to Y position (height-0)
+                // We leave some padding at top/bottom
+                const graphY = height - (I * (height * 0.8)) - 10;
+                
+                if (px === 0) ctxGraph.moveTo(px, graphY);
+                else ctxGraph.lineTo(px, graphY);
+            }
+            
+            // Finish Graph
+            ctxGraph.stroke();
+            
+            // Draw Graph Axis Line
+            ctxGraph.strokeStyle = "#333";
+            ctxGraph.lineWidth = 1;
+            ctxGraph.beginPath();
+            ctxGraph.moveTo(0, height - 10);
+            ctxGraph.lineTo(width, height - 10);
+            ctxGraph.stroke();
+        }
+
+        function update() {
+            // Get values
+            lambda = parseInt(sliderLambda.value);
+            d = parseFloat(sliderD.value);
+            a = parseFloat(sliderA.value);
+
+            // Update Labels
+            labelLambda.textContent = `${lambda} nm`;
+            labelD.textContent = `${d.toFixed(2)} mm`;
+            labelA.textContent = `${a.toFixed(3)} mm`;
+
+            draw();
+        }
+
+        // Listeners
+        sliderLambda.addEventListener('input', update);
+        sliderD.addEventListener('input', update);
+        sliderA.addEventListener('input', update);
+
+        // Init
+        update();
+
+    </script>
+</body>
+</html>
